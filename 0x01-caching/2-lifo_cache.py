@@ -2,6 +2,7 @@
 """ LIFOCache module
 """
 from base_caching import BaseCaching
+from collections import OrderedDict
 
 
 class LIFOCache(BaseCaching):
@@ -15,12 +16,14 @@ class LIFOCache(BaseCaching):
     def put(self, key, item):
         """ Add an item in the cache
         """
-        if key and item:
-            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
+        if key is not None and item is not None:
+            if key in self.cache_data:
+                del self.cache_data[key]
+            elif len(self.cache_data) >= BaseCaching.MAX_ITEMS:
                 if key not in self.cache_data:
                     discard = next(reversed(self.cache_data))
                     del self.cache_data[discard]
-                    print("DISCARD: {}".format(discard))
+                    print(f"DISCARD: {discard}")
             self.cache_data[key] = item
 
     def get(self, key):
