@@ -3,7 +3,7 @@
 Force locale
 """
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, g
 from flask_babel import Babel
 from typing import Union, Dict
 
@@ -21,8 +21,8 @@ class Config:
 app = Flask(__name__)
 app.config.from_object(Config)
 app.url_map.strict_slashes = False
-
 babel = Babel(app)
+
 
 users = {
     1: {"name": "Balou", "locale": "fr", "timezone": "Europe/Paris"},
@@ -32,18 +32,15 @@ users = {
 }
 
 
-def get_user() -> Union[Dict, None]:
+def get_user(id):
     """Get user"""
-    login_id = request.args.get('login_as', '')
-    if login_id:
-        return users.get(int(login_id))
-    return None
+    return users.get(int(id), 0)
 
 
 @app.before_request
 def before_request() -> None:
     """Before request"""
-    user = get_user()
+    setattr(g, 'user', get_user(request.args.get('login_as',0)))
 
 
 @babel.localeselector
@@ -53,6 +50,9 @@ def get_locale() -> str:
     if locale in app.config['LANGUAGES']:
         return locale
     return request.accept_languages.best_match(app.config['LANGUAGES'])
+
+
+# babel = Babel(app, locale_selector=get_locale)
 
 
 @app.route('/')
